@@ -108,4 +108,103 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 5. Scroll-Driven Parallax for Work Rows
+    const scrollRows = document.querySelectorAll('.scroll-row');
+    const maxShift = 150; // Maximum horizontal shift in pixels
+
+    function updateScrollRows() {
+        scrollRows.forEach(row => {
+            const wrapper = row.parentElement;
+            const rect = wrapper.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+
+            // Calculate how far the section is through the viewport (0 to 1)
+            const sectionTop = rect.top;
+            const sectionHeight = rect.height;
+            const viewProgress = 1 - ((sectionTop + sectionHeight) / (windowHeight + sectionHeight));
+            // Clamp to 0-1
+            const progress = Math.max(0, Math.min(1, viewProgress));
+
+            // Map progress (0->1) to shift (-maxShift -> +maxShift)
+            const shift = (progress - 0.5) * 2 * maxShift;
+
+            const direction = row.getAttribute('data-direction');
+            if (direction === 'ltr') {
+                row.style.transform = `translateX(${shift}px)`;
+            } else {
+                row.style.transform = `translateX(${-shift}px)`;
+            }
+        });
+
+        requestAnimationFrame(updateScrollRows);
+    }
+
+    requestAnimationFrame(updateScrollRows);
+
+    // 6. Lightbox Popup (Images + Videos)
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxVideo = document.getElementById('lightbox-video');
+    const lightboxClose = document.getElementById('lightbox-close');
+
+    function closeLightbox() {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+        // Reset both media
+        lightboxImg.classList.remove('active-media');
+        lightboxImg.src = '';
+        lightboxVideo.classList.remove('active-media');
+        lightboxVideo.pause();
+        lightboxVideo.src = '';
+    }
+
+    // Open lightbox for IMAGE cards
+    document.querySelectorAll('.work-card[data-lightbox]').forEach(card => {
+        card.addEventListener('click', () => {
+            const imgSrc = card.getAttribute('data-lightbox');
+            lightboxImg.src = imgSrc;
+            lightboxImg.classList.add('active-media');
+            lightboxVideo.classList.remove('active-media');
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Open lightbox for VIDEO cards
+    document.querySelectorAll('.work-card[data-video]').forEach(card => {
+        card.addEventListener('click', () => {
+            const videoSrc = card.getAttribute('data-video');
+            lightboxVideo.src = videoSrc;
+            lightboxVideo.classList.add('active-media');
+            lightboxImg.classList.remove('active-media');
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Video card hover preview: play on hover, pause on leave
+    document.querySelectorAll('.work-card-video').forEach(card => {
+        const video = card.querySelector('video');
+        card.addEventListener('mouseenter', () => {
+            video.play().catch(() => {}); // Ignore autoplay errors
+        });
+        card.addEventListener('mouseleave', () => {
+            video.pause();
+            video.currentTime = 0;
+        });
+    });
+
+    // Close lightbox
+    lightboxClose.addEventListener('click', closeLightbox);
+
+    // Close on background click
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeLightbox();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
+    });
+
 });
