@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pratham-portfolio-teal.vercel.app/sitemap.xml
